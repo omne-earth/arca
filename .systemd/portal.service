@@ -1,0 +1,16 @@
+[Unit]
+Description=portal daemon in firefox for arca
+After=arca.service
+Requires=arca.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/docker run --rm --name=firefox --network=host -v /home/arca/.firefox/config/profile/prefs.js:/config/profile/prefs.js:rw docker.io/jlesage/firefox:v25.09.1
+Restart=always
+RestartSec=5
+User=arca
+Group=arca
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=caddy reverse proxy gateway for arca
+After=portal.service
+Requires=portal.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/caddy reverse-proxy --from https://localhost:8443 --to http://localhost:5800 --disable-redirects
+Restart=always
+RestartSec=5
+User=arca
+Group=arca
+
+[Install]
+WantedBy=multi-user.target

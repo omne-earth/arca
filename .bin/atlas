@@ -1,0 +1,2 @@
+#!/bin/bash
+ls /containers | xargs -I {} docker load --input /containers/{}

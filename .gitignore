@@ -1,0 +1,8 @@
+.installed
+source/*
+.openhands/secrets.json
+.openhands/settings.json
+.app*
+.arca*
+.titan*
+notes
