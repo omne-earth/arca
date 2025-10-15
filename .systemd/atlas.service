@@ -1,0 +1,17 @@
+[Unit]
+Description=skopeo container pre-loader for arca
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/atlas
+RemainAfterExit=true
+Restart=no
+User=arca
+Group=arca
+WorkingDirectory=/containers
+
+[Install]
+WantedBy=multi-user.target
