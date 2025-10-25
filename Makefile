@@ -5,29 +5,27 @@ include .env
 .ONESHELL:
 .SUFFIXES:
 
-CONTAINER_HOST := localhost
-OPENHANDS_RELEASE := 0.59.0
-ARCA_RELEASE := v1
-DOCKER_BUILD_OPTS := --no-cache --progress=auto
+.install-%:
+	command -v $* >/dev/null 2>&1 || sudo bash .install/$*.sh
 
-.installed:
-	sudo bash ./install.sh
-	touch .installed
+.start-%:
+	STATUS=$$(systemctl show $* --property ActiveState --value)
+	echo $?
+	if [ $$STATUS != "active" ]; then \
+		sudo systemctl enable --now $* && sudo systemctl start $*; \
+	fi
 
-.docker:
-	command -v docker >/dev/null 2>&1 || make .installed
+.docker: .install-docker .start-docker
 
-.sysbox:
-	command -v sysbox >/dev/null 2>&1 || make .installed
-	command -v sysbox-fs >/dev/null 2>&1 || make .installed
-	command -v sysbox-mgr >/dev/null 2>&1 || make .installed
-	command -v sysbox-runc >/dev/null 2>&1 || make .installed
+.sysbox: .docker .install-sysbox .start-sysbox .start-sysbox-fs .start-sysbox-mgr .start-sysbox-mgr 
 
 .git:
-	command -v git >/dev/null 2>&1 || make .installed
+	command -v git >/dev/null 2>&1 || sudo apt update -y && sudo apt install git
 
 .vim:
-	command -v vim >/dev/null 2>&1 || make .installed
+	command -v vim >/dev/null 2>&1 || sudo apt update -y && sudo apt install vim
+
+install: .git .vim .docker .sysbox
 
 source/openhands-%:
 	rm -rf source/openhands-$*
@@ -65,7 +63,7 @@ source/openhands-%:
 		-t "arca:${ARCA_RELEASE}-$*" . ${DOCKER_BUILD_OPTS} \
 		&& touch .arca-$*
 
-arca-core: .docker .sysbox .git .vim source/openhands-${OPENHANDS_RELEASE} .patch-${OPENHANDS_RELEASE} .app-${OPENHANDS_RELEASE}
+arca-core: .sysbox .git source/openhands-${OPENHANDS_RELEASE} .patch-${OPENHANDS_RELEASE} .app-${OPENHANDS_RELEASE}
 
 arca-gaia: arca-core .arca-gaia
 
@@ -81,9 +79,9 @@ all: arca-gaia arca-atlas
 	cp -f .openhands/settings.json.template .openhands/settings.json
 	vim .openhands/settings.json
 
-bootstrap: .openhands/secrets.json .openhands/settings.json
+bootstrap: .vim .openhands/secrets.json .openhands/settings.json
 
-inject\:%:
+inject\:%: .docker
 	cat <<EOF | docker exec -i $* /bin/bash -c "cat > /.openhands/settings.json"
 	$$(cat .openhands/settings.json)
 	EOF
@@ -91,7 +89,7 @@ inject\:%:
 	$$(cat .openhands/secrets.json)
 	EOF
 
-new\:gaia\:%: bootstrap
+new\:gaia\:%: .sysbox bootstrap
 	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $* --hostname $* "localhost/arca:v1-gaia"
 	sleep 5
 	make inject:$*
@@ -101,45 +99,45 @@ new\:atlas\:%: bootstrap
 	sleep 5
 	make inject:$*
 
-monitor\:%:
+monitor\:%: .docker
 	WHICH=$$(echo $* | cut -d ':' -f 1)
 	WHAT=$$(echo $* | cut -d ':' -f 2)
 	docker exec -it "$${WHICH}" /bin/bash -c "journalctl -f -u $$WHAT.service"
 
-enter\:%:
+enter\:%: .docker
 	docker exec -it $* /bin/bash
 
-stop\:%:
+stop\:%: .docker
 	docker container stop $*
 
-remove\:%:
+remove\:%: .docker
 	docker container rm $*
 
-docker\:tag\:%:
+docker\:tag\:%: .docker
 	docker tag localhost/arca:v1-$* omnedock/arca:v1-$*
 
-local\:tag\:%:
+local\:tag\:%: .docker
 	docker tag omnedock/arca:v1-$* localhost/arca:v1-$*
 
-docker\:push\:%:
+docker\:push\:%: .docker
 	docker push omnedock/arca:v1-$*
 
-docker\:pull\:%:
+docker\:pull\:%: .docker
 	docker pull omnedock/arca:v1-$*
 
-push\:%:
+push\:%: .docker
 	make docker:tag:$*
 	make docker:push:$*
 
-push:
+push: .docker
 	make push:gaia
 	make push:atlas
 
-pull\:%:
+pull\:%: .docker
 	make docker:pull:$*
 	make local:tag:$*
 
-pull:
+pull: .docker
 	make pull:gaia
 	make pull:atlas
 

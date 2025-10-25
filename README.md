@@ -19,16 +19,23 @@ Arca provides a self-contained development environment with systemd services, br
 RAM usage is around 512 MB for both versions. Estimates are based on a 8 core CPU machine. The first conversation downloads the runtime image if a local image is not available. atlas images have the runtime image, and other requisite containers, cached. The cached images is loaded at boot time. Internet may still be required if the LLM is external for atlas containers.
 
 ## Prerequisites
+- make
 
+### Tested On
+- Ubuntu 24.04
+
+Support for additional operating systems may be available upon request.
+
+### Dependencies
 - docker
 - sysbox
 - git
-- make
+- vim
 
-For convenience, an install script is provided which  will install docker, sysbox, and other required dependencies.
+For convenience, an install script is provided which  will install required dependencies.
 
 ```bash
-make .installed
+make install
 ```
 
 ## Quick Start
