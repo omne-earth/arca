@@ -1,31 +1,76 @@
-# Arca
+# arca
 
-A single-container isoloated AI development environment based on OpenHands with enhanced system integration.
+*Latin for box*
+
+A single-container isoloated AI development environment with enhanced system integration.
 
 ## Overview
 
-Arca provides a self-contained development environment with systemd services, browser capabilities, and AI agent functionality. It supports two deployment variants:
+Arca provides a self-contained development environment with systemd services, browser capabilities, and AI agent functionality.
+
+> host --> arca --> agent runtime
+
+![DEMO](https://github.com/omne-earth/arca/blob/main/docs/demo.gif)
+
+### Features
+
+1. Runs in a single host container
+    * clean host environment
+    * works without mounting docker socket
+2. Runs in a secure and isolated container
+    * no root required on host
+    * arca and agent can run as root
+    * root inside arca and runtime is nobody on host
+3. systemd integration
+    * makes recoverable daemons possible
+4. plug and play image (atlas)
+    * runtime and agent already included
+    * reduces time to first conversation
+5. secure and abstract browser interface
+    * supports separate vscode per conversation
+6. *security_risk* score disabled by default
+    * some LLM models do not support this
+    * alternatives like *invariant* and *grayswan* require subscription
+    * easily modify patch target if feature is desired
+7. One line to get it all started. Let's go!
+
+### Versions
+
+It supports two deployment variants based on OpenHands:
 
 **gaia**: Standard version
-* reduced filesize, about 2.19 GB
 * portal available in about 1.5 minute
 * runtime available in about 11 minutes, requires internet
 
 **atlas**: Plug-N-Play version
-* larger filesize, about 15.5 GB
 * portal available in 3-4 minute
 * runtime available in 2 minutes, no internet required
 
-RAM usage is around 512 MB for both versions. Estimates are based on a 8 core CPU machine. The first conversation downloads the runtime image if a local image is not available. atlas images have the runtime image, and other requisite containers, cached. The cached images is loaded at boot time. Internet may still be required if the LLM is external for atlas containers.
+#### Containers
+Containers in docker are compressed and may occupy larger size when downloaded to the file system. Additionally, the size of locally built image is larger than docker hub.
+
+https://hub.docker.com/r/omnedock/arca
+
+#### omnedock/arca:gaia
+
+Compressed Size (Docker Hub): 657.92 MB
+
+Uncompressed Size (Local): 2.19 GB
+
+#### omnedock/arca:atlas
+
+Compressed Size (Docker Hub): 5.04 GB
+
+Uncompressed Size (Local): 15.5 GB
 
 ## Prerequisites
+
+arca has been tested on an **Ubuntu 240.4** host machine with the following resources available for containers:
+- 1m cpu (1 vCPU)
+- 4096m ram (4GB)
 - make
 
-### Tested On
-- Ubuntu 24.04
-
-Support for additional operating systems may be available upon request.
-
+Other operating systems that support make, docker and sysbox should also be compatible. The install script is *Debian* based and will require modifications for other distributions.
 
 ## Quick Start
 
@@ -48,16 +93,6 @@ For convenience, an install script is provided which  will install required depe
 ```bash
 make install
 ```
-
-### Containers
-
-#### omnedock/arca:gaia
-
-Size: 2.19 GB
-
-#### omnedock/arca:atlas
-
-Size: 15.5 GB
 
 ### Running
 
@@ -136,13 +171,11 @@ To monitor the systemd journal logs for these servvices running inside arca, ple
 make monitor:<container-name>:service-name 
 ```
 
-
 #### Services
 
 - **arca.service** - Core OpenHands backend
 - **portal.service** - Web portal and interface in firefox
 - **gateway.service** - Network gateway and routing with caddy
-
 - **atlas.service** - Loads image tarballs using skopio
 
 ## Development
@@ -151,7 +184,10 @@ make monitor:<container-name>:service-name
 ```bash
 OPENHANDS_RELEASE := 0.59.0
 ARCA_RELEASE := 1.0.0
+ARCA_PORTAL := 8443
 DOCKER_BUILD_OPTS := # --no-cache --progress=auto
+DOCKER_RUN_OPTS := # --cpus=1 -m 4096m
+REMOTE_DOCKER_HOST := omnedock
 ```
 
 ### Building from Source
@@ -159,8 +195,14 @@ DOCKER_BUILD_OPTS := # --no-cache --progress=auto
 Build all variants (default):
 
 ```bash
-make all          # Builds both Gaia and Atlas variants
-make              # Also builds both (default target)
+make all
+```
+
+Or build each variant independently:
+
+```bash
+make arca-atlas
+make arca-gaia
 ```
 
 Build core components only:
@@ -169,20 +211,13 @@ Build core components only:
 make arca-core
 ```
 
-Build specific variants:
-
-```bash
-make arca-gaia    # Base environment
-make arca-atlas   # Extended environment
-```
-
 #### Patch Information
 
 A patch target exists that makes some changes to the OpenHands code.
 
 ```bash
-make source/openhands-0.59.0  # Clone source
-make .patch-0.59.0            # Apply custom patches
+make source/openhands-0.59.0 
+make .patch-0.59.0 
 ```
 
 The patch speficically:
@@ -195,9 +230,51 @@ The patch speficically:
 ### Cleanup
 
 Remove all build artifacts and containers:
+
 ```bash
 make clean
 ```
+
+## Roadmap
+
+#### Can other agent that run minimally be onboarded in arca?
+
+* agent onboarding
+
+    * mini-SWE-agent
+    * SWE-agent
+    * SWE-ReX
+
+#### How can the host/arca boundary be isolated even more while allowing a complete system-like environment for the agent?
+
+* true system for agents
+
+    * arca firewall
+    * systemd environment for the agent inside the runtime
+
+#### Can the agent runtime be modular and smaller? Is a plug-and-play design possible?
+
+* runtime extensions
+
+    * minimal, pluggable runtimes for agents
+    * include major development environments
+
+#### Can the agents be enabled with micro-agents specialized in routine actions that emulate enterprise workloads?
+
+* atomic micro-agents
+    * ansible
+    * terraform
+    * docker
+    * kubernetes
+    * cdk8s
+    * helm
+
+#### Can the arca containers be deployed in HPC ecosystems?
+
+* HPC support
+
+    * Singularity
+    * HTCondor
 
 ## License
 
