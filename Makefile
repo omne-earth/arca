@@ -103,7 +103,7 @@ new\:%: .sysbox bootstrap
 	WHICH=$$(echo $* | cut -d ':' -f 1)
 	WHAT=$$(echo $* | cut -d ':' -f 2)
 	make pull:$$WHICH
-	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $$WHAT --hostname $$WHAT "arca:${ARCA_RELEASE}-$$WHICH"
+	docker run -d ${DOCKER_RUN_OPTS} --runtime=sysbox-runc -p 8443:8443 --name $$WHAT --hostname $$WHAT "arca:${ARCA_RELEASE}-$$WHICH"
 	make inject:$$WHAT
 
 monitor\:%: .docker
