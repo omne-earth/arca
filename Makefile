@@ -1,3 +1,5 @@
+include .env
+
 .DEFAULT_GOAL := all
 .PHONY: .docker .sysbox .git .vim .patch-0.59.0 arca-gaia arca-atlas all boostrap inject\:% new\:v1\:% new\:v1-atlas\:% monitor\:% enter\:% stop\:% remove\:% docker\:tag\:% docker\:push\:% push clean
 .ONESHELL:
@@ -51,19 +53,19 @@ source/openhands-%:
 	sed -i "s/, 'security_risk'//g" "./openhands/agenthub/codeact_agent/tools/str_replace_editor.py"
 
 .app-%:
-	docker image rm "${CONTAINER_HOST}/arca-app:$*" || true
+	docker image rm "arca-app:$*" || true
 	cd ./source/openhands-$*
 	docker build -f "./containers/app/Dockerfile" \
-		-t "${CONTAINER_HOST}/arca-app:$*" . ${DOCKER_BUILD_OPTS} \
+		-t "arca-app:$*" . ${DOCKER_BUILD_OPTS} \
 		&& (cd ../.. && touch .app-$*)
 
 .arca-%:
-	docker image rm "${CONTAINER_HOST}/arca:${ARCA_RELEASE}-$*" || true
+	docker image rm "arca:${ARCA_RELEASE}-$*" || true
 	docker build --build-arg OPENHANDS_RELEASE="${OPENHANDS_RELEASE}" --build-arg ARCA_TYPE="$*" -f Containerfile \
-		-t "${CONTAINER_HOST}/arca:${ARCA_RELEASE}-$*" . ${DOCKER_BUILD_OPTS} \
+		-t "arca:${ARCA_RELEASE}-$*" . ${DOCKER_BUILD_OPTS} \
 		&& touch .arca-$*
 
-arca-core:.docker .sysbox .git .vim source/openhands-${OPENHANDS_RELEASE} .patch-${OPENHANDS_RELEASE} .app-${OPENHANDS_RELEASE}
+arca-core: .docker .sysbox .git .vim source/openhands-${OPENHANDS_RELEASE} .patch-${OPENHANDS_RELEASE} .app-${OPENHANDS_RELEASE}
 
 arca-gaia: arca-core .arca-gaia
 
@@ -89,12 +91,12 @@ inject\:%:
 	$$(cat .openhands/secrets.json)
 	EOF
 
-new\:v1-gaia\:%: bootstrap
+new\:gaia\:%: bootstrap
 	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $* --hostname $* "localhost/arca:v1-gaia"
 	sleep 5
 	make inject:$*
 
-new\:v1-atlas\:%: bootstrap
+new\:atlas\:%: bootstrap
 	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $* --hostname $* "localhost/arca:v1-atlas"
 	sleep 5
 	make inject:$*

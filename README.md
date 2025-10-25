@@ -39,11 +39,11 @@ make .installed
 make pull
 ```
 
-#### omnedock/arca:v1-gaia
+#### omnedock/arca:gaia
 
 Size: 2.19 GB
 
-#### omnedock/arca:v1-atlas
+#### omnedock/arca:atlas
 
 Size: 15.5 GB
 
@@ -54,13 +54,13 @@ arca will be accessible on port 8443.
 #### gaia
 
 ```bash
-make new:v1-gaia:container-name
+make new:gaia:<container-name>
 ```
 
 #### atlas
 
 ```bash
-make new:v1-atlas:container-name
+make new:atlas:<container-name>
 ```
 
 ### Monitoring
@@ -68,7 +68,7 @@ make new:v1-atlas:container-name
 portal UI at https://localhost:8443 should be available when the following command reports *Uvicorn running on http://0.0.0.0:3000*
 
 ```bash
-make monitor:container-name:arca
+make monitor:<container-name>:arca
 ```
 
 ### Inject Configuration
@@ -89,7 +89,7 @@ make bootstrap
 This will create `.openhands/settings.json` and `.openhands/secrets.json` files, and prompt for edits. Once the file is created, it can be injected to a running container :
 
 ```bash
-make inject:container-name
+make inject:<container-name>
 ```
 
 > For any edits to OpenHands configuration, it is recommended to use the bootstrap target and make required changes. Editing the settings using the UI sometimes resets the settings as OpenHands expects certain configuration items as environment variables while some in *settings.json* or *config.toml*. This can cause unexpected behaviors - like null sandbox runtime image url upon which OpenHands starts building the runtime container instead. See: https://github.com/OpenHands/OpenHands/issues/9531
@@ -101,19 +101,19 @@ make inject:container-name
 To enter a container:
 
 ```bash
-make enter:container-name
+make enter:<container-name>
 ```
 
 To stop a container:
 
 ```bash
-make stop:container-name   
+make stop:<container-name>   
 ```
 
 To remove a container:
 
 ```bash
-make remove:container-name     
+make remove:<container-name>     
 ```
 
 ### Monitoring
@@ -123,7 +123,7 @@ make remove:container-name
 To monitor the systemd journal logs for these servvices running inside arca, please run: 
 
 ```bash
-make monitor:container-name:service-name 
+make monitor:<container-name>:service-name 
 ```
 
 
@@ -136,6 +136,13 @@ make monitor:container-name:service-name
 - **atlas.service** - Loads image tarballs using skopio
 
 ## Development
+
+### Environment
+```bash
+OPENHANDS_RELEASE := 0.59.0
+ARCA_RELEASE := 1.0.0
+DOCKER_BUILD_OPTS := # --no-cache --progress=auto
+```
 
 ### Building from Source
 
