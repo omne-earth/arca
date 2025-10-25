@@ -1,0 +1,18 @@
+Parent container occupied resource: 1m cpu and 4gb RAM
+
+@ 17:11:56 - make new:atlas:test (container already pulled)
+@ 17:14:56 - make monitor:test:atlas
+@ 17:15:21 - make monitor:test:arca
+@ 17:15:11 - make monitor:test:portal
+@ 17:15:16 - make monitor:test:gateway
+
+~ 3:25 boot time
+
+@ 17:20:58 - runtime container started
+@ 17:22:45 - runtime ready
+@ 17:22:48 - joined conversation
+
+~ 1:50 new conversation load time
+
+~ 5:15 start to finish
++ 1:00 to pull if container not available locally (bandwidth dependent)
