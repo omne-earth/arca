@@ -1,17 +1,16 @@
 include .env
-
-.DEFAULT_GOAL := all
+MAKEFLAGS += --no-print-directory
+.DEFAULT_GOAL := new:atlas:arca
 .PHONY: .docker .sysbox .git .vim .patch-0.59.0 arca-gaia arca-atlas all boostrap inject\:% new\:v1\:% new\:v1-atlas\:% monitor\:% enter\:% stop\:% remove\:% docker\:tag\:% docker\:push\:% push clean
 .ONESHELL:
 .SUFFIXES:
 
 .install-%:
-	command -v $* >/dev/null 2>&1 || sudo bash .install/$*.sh
+	@command -v $* >/dev/null 2>&1 || sudo bash .install/$*.sh
 
 .start-%:
-	STATUS=$$(systemctl show $* --property ActiveState --value)
-	echo $?
-	if [ $$STATUS != "active" ]; then \
+	@STATUS=$$(systemctl show $* --property ActiveState --value)
+	@if [ $$STATUS != "active" ]; then \
 		sudo systemctl enable --now $* && sudo systemctl start $*; \
 	fi
 
@@ -20,10 +19,10 @@ include .env
 .sysbox: .docker .install-sysbox .start-sysbox .start-sysbox-fs .start-sysbox-mgr .start-sysbox-mgr 
 
 .git:
-	command -v git >/dev/null 2>&1 || sudo apt update -y && sudo apt install git
+	command -v git >/dev/null 2>&1 || (sudo apt update -y && sudo apt install git)
 
 .vim:
-	command -v vim >/dev/null 2>&1 || sudo apt update -y && sudo apt install vim
+	command -v vim >/dev/null 2>&1 || (sudo apt update -y && sudo apt install vim)
 
 install: .git .vim .docker .sysbox
 
@@ -89,15 +88,23 @@ inject\:%: .docker
 	$$(cat .openhands/secrets.json)
 	EOF
 
-new\:gaia\:%: .sysbox bootstrap
-	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $* --hostname $* "localhost/arca:v1-gaia"
-	sleep 5
-	make inject:$*
+docker\:pull\:%: .docker
+	docker pull omnedock/arca:${ARCA_RELEASE}-$*
+	docker tag omnedock/arca:${ARCA_RELEASE}-$* arca:${ARCA_RELEASE}-$*
 
-new\:atlas\:%: bootstrap
-	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $* --hostname $* "localhost/arca:v1-atlas"
-	sleep 5
-	make inject:$*
+pull\:%: .docker
+	make docker:pull:$*
+
+pull: .docker
+	make pull:gaia
+	make pull:atlas
+
+new\:%: .sysbox bootstrap
+	WHICH=$$(echo $* | cut -d ':' -f 1)
+	WHAT=$$(echo $* | cut -d ':' -f 2)
+	make pull:$$WHICH
+	docker run -d --runtime=sysbox-runc -p 8443:8443 --name $$WHAT --hostname $$WHAT "arca:${ARCA_RELEASE}-$$WHICH"
+	make inject:$$WHAT
 
 monitor\:%: .docker
 	WHICH=$$(echo $* | cut -d ':' -f 1)
@@ -114,16 +121,10 @@ remove\:%: .docker
 	docker container rm $*
 
 docker\:tag\:%: .docker
-	docker tag localhost/arca:v1-$* omnedock/arca:v1-$*
-
-local\:tag\:%: .docker
-	docker tag omnedock/arca:v1-$* localhost/arca:v1-$*
+	docker tag arca:${ARCA_RELEASE}-$* ${REMOTE_DOCKER_HOST}/arca:${ARCA_RELEASE}-$*
 
 docker\:push\:%: .docker
-	docker push omnedock/arca:v1-$*
-
-docker\:pull\:%: .docker
-	docker pull omnedock/arca:v1-$*
+	docker push ${REMOTE_DOCKER_HOST}/arca:${ARCA_RELEASE}-$*
 
 push\:%: .docker
 	make docker:tag:$*
@@ -132,14 +133,6 @@ push\:%: .docker
 push: .docker
 	make push:gaia
 	make push:atlas
-
-pull\:%: .docker
-	make docker:pull:$*
-	make local:tag:$*
-
-pull: .docker
-	make pull:gaia
-	make pull:atlas
 
 clean:
 	rm -rf .installed source/* .app* .arca* || true
