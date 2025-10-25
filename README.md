@@ -26,6 +26,17 @@ RAM usage is around 512 MB for both versions. Estimates are based on a 8 core CP
 
 Support for additional operating systems may be available upon request.
 
+
+## Quick Start
+
+Run the command below to atomically install dependencies, pull image and run the container:
+
+```bash
+make new:atlas:arca
+```
+
+The portal will be accessible at https://localhost:8443 by default. The port may be changed in the environment file.
+
 ### Dependencies
 - docker
 - sysbox
@@ -38,13 +49,7 @@ For convenience, an install script is provided which  will install required depe
 make install
 ```
 
-## Quick Start
-
-### Pulling Containers
-
-```bash
-make pull
-```
+### Containers
 
 #### omnedock/arca:gaia
 
@@ -55,8 +60,6 @@ Size: 2.19 GB
 Size: 15.5 GB
 
 ### Running
-
-arca will be accessible on port 8443.
 
 #### gaia
 
