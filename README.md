@@ -1,11 +1,14 @@
-> CVE-2025-31133, CVE-2025-52565, CVE-2025-52881 patches run-c along with complimentary kernel level patches in the linux kernel to prevent usernamespace emulation.
-As a result, sysbox gets a hard stop. Hence, arca, for now, is deprecated.
 
 # arca
 
 *Latin for box*
 
 A single-container isoloated AI development environment with enhanced system integration.
+
+> CVE-2025-31133, CVE-2025-52565, CVE-2025-52881 patches run-c along with complimentary kernel level patches in the linux kernel to prevent usernamespace emulation.
+As a result, sysbox gets a hard stop. Hence, arca, for now, is deprecated forward. However, if interested, please feel free to check arca out on an older version of Ubuntu: https://old-releases.ubuntu.com/releases/noble/ (recommended 24.04.02)
+
+> A better, stronger, faster version of arca is in the making, please stay tuned 🔨
 
 ## Overview
 
